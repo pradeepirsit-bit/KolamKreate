@@ -2,8 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kolam Kreate - Daily Calming Ritual</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kolam Kreate</title>
+    
+    <!-- PWA iOS Web App Meta Buffers -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Kolam Kreate">
+    <meta name="theme-color" content="#161210">
+
+    <!-- Embedded PWA Web App Manifest Matrix Specification Data URL -->
+    <link rel="manifest" href="data:application/manifest+json;base64,ewogICAgIm5hbWUiOiAiS29sYW0gS3JlYXRlIC0gRGFpbHkgQ2FsbSIsCiAgICAic2hvcnRfbmFtZSI6ICJLb2xhbSBLcmVhdGUiLAogICAgInN0YXJ0X3VybCI6ICIuL2luZGV4Lmh0bWwiLAogICAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMTYxMjEwIiwKICAgICJ0aGVtZV9jb2xvciI6ICIjMTYxMjEwIiwKICAgICJvcmllbnRhdGlvbiI6ICJwb3J0cmFpdCIsCiAgICAiaWNvbnMiOiBbCiAgICAgICAgewogICAgICAgICAgICAic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbDt1dGY4LDxzdmcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJyB2aWV3Qm94PScwIDAgNTEyIDUxMic+PGNyY2xlIGN4PScyNTYnIGN5PScyNTYnIHI9JzI0MCcgZmlsbD0nIzE2MTIxMCcvPjxjaXJjbGUgY3g9JzI1NicgY3k9JzI1Nicgcj0nMjAnIGZpbGw9JyNlMDgyNjInLz48L3N2Zz4iLAogICAgICAgICAgICAic2l6ZXMiOiAiNTEyeDUxMiIsCiAgICAgICAgICAgICJ0eXBlIjogImltYWdlL3N2Zyt4bWwiLAogICAgICAgICAgICAicHVycG9zZSI6ICJhbnkgbWFza2FibGUiCiAgICAgICAgfQogICAgXQp9">
+
     <style>
         /* --- MINIMALIST WELLNESS STYLING --- */
         :root {
@@ -65,6 +75,8 @@
             width: 100vw;
             height: 100vh;
             padding: 24px;
+            padding-top: calc(24px + env(safe-area-inset-top)); /* Handle iOS dynamic notches safely */
+            padding-bottom: calc(24px + env(safe-area-inset-bottom));
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -105,7 +117,7 @@
             backdrop-filter: blur(10px);
             width: 100%;
             max-width: 800px;
-            height: 72vh; 
+            height: 70vh; 
             display: flex;
             justify-content: center;
             align-items: center;
@@ -116,7 +128,7 @@
             display: block;
             cursor: crosshair;
             touch-action: none; 
-            image-rendering: -webkit-optimize-contrast; /* Clear modern anti-aliasing */
+            image-rendering: -webkit-optimize-contrast; 
         }
 
         /* Minimal Footers & Custom Buttons */
@@ -258,6 +270,28 @@
 </head>
 <body>
 
+    <!-- SELF-CONTAINED BACKGROUND SERVICE WORKER ALIVE DETECTOR MATRIX CHECK -->
+    <script>
+        if (typeof window === 'undefined') {
+            // Background thread Context Execution Zone (Runs inside sw.js context)
+            const CACHE_NAME = 'kolam-kreate-v1';
+            const ASSETS = ['./index.html', './', './manifest.json'];
+
+            self.addEventListener('install', (e) => {
+                e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+            });
+
+            self.addEventListener('activate', (e) => {
+                e.waitUntil(caches.keys().then(keys => Promise.all(keys.map(k => k !== CACHE_NAME && caches.delete(k)))).then(() => self.clients.claim()));
+            });
+
+            self.addEventListener('fetch', (e) => {
+                e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
+            });
+        }
+    </script>
+
+    <!-- MAIN INTERFACE DISPLAY TARGET PANELS -->
     <div class="ambient-glow" id="ambientGlow"></div>
     <div class="zen-hint">Double tap anywhere to exit Zen Mode</div>
 
@@ -285,7 +319,17 @@
     </div>
 
     <script>
-        // --- CALMING ENGINE (JAVASCRIPT) ---
+        // --- CORE CLIENT CONTEXT APPLICATION CODE ---
+        
+        // PWA Native Service Worker Registration Handle
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Kolam Kreate PWA Pipeline Active'))
+                    .catch(err => console.log('Local Sandbox Mode Active'));
+            });
+        }
+
         const canvas = document.getElementById('kolamCanvas');
         const ctx = canvas.getContext('2d');
         const wrapper = document.getElementById('canvasWrapper');
@@ -296,11 +340,9 @@
         const sizeBtn = document.getElementById('sizeBtn');
         const gridBtn = document.getElementById('gridBtn');
 
-        // Dynamic Resize Logic to fill standard dynamic Viewport grids
         let canvasW, canvasH;
         let dots = [];
         
-        // Multi-Grid Array Configuration
         const gridLayouts = [
             { x: 7, y: 5, label: "7×5" },
             { x: 9, y: 7, label: "9×7" },
@@ -310,7 +352,7 @@
         let currentGridIndex = 0;
 
         let spacing = 55; 
-        const proximityRadius = 20; // Radius to wake up dots when drawing close to them
+        const proximityRadius = 20; 
         
         let drawingStroke = []; 
         let completedStrokes = []; 
@@ -318,7 +360,6 @@
         let isDissolving = false;
         let zenModeActive = false;
 
-        // Dot Configurable Settings Matrix
         const dotSizes = {
             'Regular': 4,
             'Medium': 7,
@@ -350,37 +391,27 @@
             drawScene();
         }
 
-        // Initialize Center-aligned Dot Matrix
         function initGrid() {
             dots = [];
             const activeLayout = gridLayouts[currentGridIndex];
-            
             const startX = (canvasW - (activeLayout.x - 1) * spacing) / 2;
             const startY = (canvasH - (activeLayout.y - 1) * spacing) / 2;
 
             for (let i = 0; i < activeLayout.x; i++) {
                 for (let j = 0; j < activeLayout.y; j++) {
-                    dots.push({
-                        x: startX + i * spacing,
-                        y: startY + j * spacing,
-                        active: false
-                    });
+                    dots.push({ x: startX + i * spacing, y: startY + j * spacing, active: false });
                 }
             }
         }
 
-        // Render Routine
         function drawScene(opacity = 1) {
             ctx.clearRect(0, 0, canvasW, canvasH);
-
             const activeRadius = dotSizes[dotSizeSequence[currentSizeIndex]];
 
-            // 1. Draw Geometric Background Dots
             dots.forEach(dot => {
                 ctx.beginPath();
                 ctx.arc(dot.x, dot.y, activeRadius, 0, Math.PI * 2);
                 ctx.fillStyle = dot.active ? `rgba(224, 130, 98, ${opacity})` : `rgba(244, 234, 224, ${0.25 * opacity})`;
-                
                 if (dot.active) {
                     ctx.shadowColor = '#e08262';
                     ctx.shadowBlur = activeRadius * 2;
@@ -391,15 +422,12 @@
             });
             ctx.shadowBlur = 0; 
 
-            // 2. Render Lines using Optimized Midpoint Curves for Maximum Smoothness & Speed
             ctx.lineWidth = 3.5;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
 
             const allStrokesToDraw = [...completedStrokes];
-            if (drawingStroke.length > 0) {
-                allStrokesToDraw.push(drawingStroke);
-            }
+            if (drawingStroke.length > 0) allStrokesToDraw.push(drawingStroke);
 
             allStrokesToDraw.forEach(stroke => {
                 if (stroke.length < 2) return;
@@ -408,7 +436,6 @@
             });
         }
 
-        // High-Speed Midpoint Quadratic Curve Rendering Loop
         function drawFastSmoothPath(points) {
             ctx.beginPath();
             ctx.moveTo(points[0].x, points[0].y);
@@ -427,28 +454,21 @@
             ctx.stroke();
         }
 
-        // Pure Coordinate Capture Engine (SNAPPING REMOVED)
         function getCanvasCoordinates(clientX, clientY) {
             const rect = canvas.getBoundingClientRect();
             const x = clientX - rect.left;
             const y = clientY - rect.top;
 
-            // Ambient Guidance Trigger: Illuminate dot when path sweeps near it
             for (let dot of dots) {
-                const dist = Math.hypot(x - dot.x, y - dot.y);
-                if (dist < proximityRadius) {
-                    dot.active = true;
-                }
+                if (Math.hypot(x - dot.x, y - dot.y) < proximityRadius) dot.active = true;
             }
             return { x, y }; 
         }
 
-        // --- INTERACTION EVENT LISTENERS ---
+        // --- INTERACTION HANDLING LOGIC PIPELINES ---
         function startDrawing(e) {
             if (isDissolving) return;
             isDrawing = true;
-            
-            // Minimize lower interface controls instantly upon canvas touch
             footer.classList.add('minimize-controls');
 
             const point = e.touches ? e.touches[0] : e;
@@ -463,7 +483,6 @@
             const currentPoint = getCanvasCoordinates(point.clientX, point.clientY);
 
             const lastPoint = drawingStroke[drawingStroke.length - 1];
-            // Tightened delta captures pure, seamless, freeform movement variations instantly
             if (Math.hypot(currentPoint.x - lastPoint.x, currentPoint.y - lastPoint.y) > 0.5) {
                 drawingStroke.push(currentPoint);
                 drawScene();
@@ -473,30 +492,21 @@
         function stopDrawing() {
             if (!isDrawing) return;
             isDrawing = false;
-            
-            // Restore control layout to normal when canvas is released
             footer.classList.remove('minimize-controls');
 
-            if (drawingStroke.length > 1) {
-                completedStrokes.push(drawingStroke);
-            }
+            if (drawingStroke.length > 1) completedStrokes.push(drawingStroke);
             drawingStroke = [];
             drawScene();
         }
 
-        // Bind Mouse System
         canvas.addEventListener('mousedown', startDrawing);
         window.addEventListener('mousemove', moveDrawing);
         window.addEventListener('mouseup', stopDrawing);
 
-        // Mobile Touch System
         canvas.addEventListener('touchstart', startDrawing);
         window.addEventListener('touchmove', moveDrawing, { passive: false });
-        canvas.addEventListener('touchend', stopDrawing);
+        window.addEventListener('touchend', stopDrawing);
 
-        // --- CALMING FEATURE ROUTINES ---
-
-        // Grid Size Configuration Button
         gridBtn.addEventListener('click', () => {
             currentGridIndex = (currentGridIndex + 1) % gridLayouts.length;
             gridBtn.innerText = `🎛️ Grid: ${gridLayouts[currentGridIndex].label}`;
@@ -505,14 +515,12 @@
             resizeCanvas();
         });
 
-        // Dot Radius Configuration Button
         sizeBtn.addEventListener('click', () => {
             currentSizeIndex = (currentSizeIndex + 1) % dotSizeSequence.length;
             sizeBtn.innerText = `⚪ Dot Size: ${dotSizeSequence[currentSizeIndex]}`;
             drawScene();
         });
 
-        // Dissolve Canvas Transition Engine
         clearBtn.addEventListener('click', () => {
             if (completedStrokes.length === 0 || isDissolving) return;
             isDissolving = true;
@@ -534,35 +542,22 @@
             requestAnimationFrame(fadeAnimation);
         });
 
-        // Zen Mode Mechanics Controller Toggle
         function toggleZenMode() {
             zenModeActive = !zenModeActive;
-            if (zenModeActive) {
-                document.body.classList.add('zen-active');
-            } else {
-                document.body.classList.remove('zen-active');
-            }
-            setTimeout(() => {
-                resizeCanvas();
-            }, 500);
+            document.body.classList.toggle('zen-active', zenModeActive);
+            setTimeout(resizeCanvas, 500);
         }
 
         zenBtn.addEventListener('click', toggleZenMode);
-        
-        // Double Tap / Double Click Anywhere to Escape Zen Mode Safely
-        window.addEventListener('dblclick', () => {
-            if (zenModeActive) toggleZenMode();
-        });
+        window.addEventListener('dblclick', () => { if (zenModeActive) toggleZenMode(); });
         
         let lastTap = 0;
         window.addEventListener('touchstart', (e) => {
             const currentTime = new Date().getTime();
             const tapLength = currentTime - lastTap;
-            if (tapLength < 300 && tapLength > 0) {
-                if (zenModeActive) {
-                    toggleZenMode();
-                    e.preventDefault();
-                }
+            if (tapLength < 300 && tapLength > 0 && zenModeActive) {
+                toggleZenMode();
+                e.preventDefault();
             }
             lastTap = currentTime;
         });
@@ -571,7 +566,6 @@
             alert("Your Mindful Kolam has been beautifully preserved inside your routine logs. ✨");
         });
 
-        // Initialize Application
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
     </script>
